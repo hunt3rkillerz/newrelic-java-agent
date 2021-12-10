@@ -38,16 +38,16 @@ val javadocJar by tasks.getting
 val sourcesJar by tasks.getting
 
 mapOf(
-    "2.10" to crossBuildScala_210Jar,
-    "2.11" to crossBuildScala_211Jar,
-    "2.12" to crossBuildScala_212Jar,
-    "2.13" to crossBuildScala_213Jar
+        "2.10" to crossBuildScala_210Jar,
+        "2.11" to crossBuildScala_211Jar,
+        "2.12" to crossBuildScala_212Jar,
+        "2.13" to crossBuildScala_213Jar
 ).forEach { (scalaVersion, versionedClassJar) ->
     PublishConfig.config(
-        "crossBuildScala_${scalaVersion.replace(".", "")}",
-        project,
-        "New Relic Java agent Scala $scalaVersion API",
-        "The public Scala $scalaVersion API of the Java agent, and no-op implementations for safe usage without the agent."
+            "crossBuildScala_${scalaVersion.replace(".", "")}",
+            project,
+            "New Relic Java agent Scala $scalaVersion API",
+            "The public Scala $scalaVersion API of the Java agent, and no-op implementations for safe usage without the agent."
     ) {
         artifact(sourcesJar)
         artifact(javadocJar)
@@ -62,6 +62,7 @@ tasks {
         setForkEvery(1)
         maxParallelForks = Runtime.getRuntime().availableProcessors()
 
+        val jdk18: String by project
         val jdk17: String by project
         val jdk16: String by project
         val jdk15: String by project
@@ -73,7 +74,10 @@ tasks {
         val jdk9: String by project
         val jdk8: String by project
 
-        if (project.hasProperty("test17")) {
+        if (project.hasProperty("test18")) {
+            executable = "$jdk18/bin/java"
+            jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
+        } else if (project.hasProperty("test17")) {
             executable = "$jdk17/bin/java"
             jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
         } else if (project.hasProperty("test16")) {
@@ -102,10 +106,10 @@ tasks {
         minHeapSize = "256m"
         maxHeapSize = "768m"
         val functionalTestArgs = listOf(
-            "-javaagent:${com.nr.builder.JarUtil.getNewRelicJar(project(":newrelic-agent")).absolutePath}",
-            "-Dnewrelic.config.file=${project(":newrelic-agent").projectDir}/src/test/resources/com/newrelic/agent/config/newrelic.yml",
-            "-Dnewrelic.unittest=true",
-            "-Dnewrelic.config.startup_log_level=warn"
+                "-javaagent:${com.nr.builder.JarUtil.getNewRelicJar(project(":newrelic-agent")).absolutePath}",
+                "-Dnewrelic.config.file=${project(":newrelic-agent").projectDir}/src/test/resources/com/newrelic/agent/config/newrelic.yml",
+                "-Dnewrelic.unittest=true",
+                "-Dnewrelic.config.startup_log_level=warn"
         )
         jvmArgs(functionalTestArgs + "-Dnewrelic.config.extensions.dir=${projectDir}/src/test/resources/xml_files")
     }
@@ -117,9 +121,9 @@ tasks {
     scaladoc {
         val javadocDir = (
                 destinationDir.absolutePath
-                    .split("/")
-                    .dropLast(1)
-                    .plus("javadoc")
+                        .split("/")
+                        .dropLast(1)
+                        .plus("javadoc")
                 ).joinToString("/")
         destinationDir = File(javadocDir)
     }
